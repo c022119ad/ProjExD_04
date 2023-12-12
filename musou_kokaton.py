@@ -244,6 +244,44 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+class Shield(pg.sprite.Sprite):
+    def __init__(self, bird: Bird, life: int):
+        super().__init__()
+        self.image = pg.Surface((20, 20))
+        self.rect = self.image.get_rect()
+        self.rect.centery = bird.rect.centery
+        self.rect.centerx = bird.rect.centerx
+        pg.draw.rect(self.image, (0,0,255),
+                    (bird.rect.width+self.rect.centerx-20, bird.rect.height+self.rect.centery-20, bird.rect.width+self.rect.centerx, bird.rect.height+self.rect.centery))
+        self.vx, self.vy = bird.dire
+        angle = math.degrees(math.atan2(-self.vy, self.vx))
+        self.image = pg.transform.rotate(self.image,angle)
+        self.life = life
+
+
+    def update(self,bird):
+        self.life -= 1
+        # self.rect.centery = bird.rect.centery+bird.rect.height
+        # self.rect.centerx = bird.rect.centerx+bird.rect.width
+        # self.vx, self.vy = bird.dire
+        # angle = math.degrees(math.atan2(-self.vy, self.vx))
+        # self.image = pg.transform.rotate(self.image,angle)
+        self.image = pg.Surface((20, 20))
+        self.rect = self.image.get_rect()
+        self.rect.centery = bird.rect.centery+20
+        self.rect.centerx = bird.rect.centerx+20
+        pg.draw.rect(self.image, (0,0,255),
+                    (bird.rect.centerx-30, bird.rect.centery-30, bird.rect.centerx, bird.rect.centery-20))
+        self.vx, self.vy = bird.dire
+        angle = math.degrees(math.atan2(-self.vy, self.vx))
+        self.image = pg.transform.rotate(self.image,angle)
+
+        if self.life < 0:
+            self.kill()
+        print(bird.dire)
+
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -255,6 +293,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    shield = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -265,6 +304,10 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_CAPSLOCK:
+                shield.add(Shield(bird,400))
+            
+
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -301,6 +344,8 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
+        shield.draw(screen)
+        shield.update(bird)
         pg.display.update()
         tmr += 1
         clock.tick(50)
